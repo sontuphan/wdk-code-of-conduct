@@ -2,19 +2,38 @@
 
 ## Index
 
-1. [Code guidelines](#code-guidelines)
+1. [Project guidelines](#project-guidelines)
+    * [P001: Pull requests should only include single features](#p001-pull-requests-should-only-include-single-features)
+    * [P002: Design, then implement](#p002-design-then-implement)
+2. [Code guidelines](#code-guidelines)
     * [C001: Avoid code smells](#c001-avoid-code-smells)
-    * [C002: Provide proper documentation for all public and protected components](#c002-provide-proper-documentation-for-all-public-and-protected-components)
-    * [C003: Use narrow types for properties and methods](#c003-use-narrow-types-for-properties-and-methods)
-    * [C004: Avoid defensive programming](#c004-avoid-defensive-programming)
-    * [C005: Always mark errors that a method can throw with @throws](#c005-always-mark-errors-that-a-method-can-throw-with-throws)
-2. [Testing guidelines](#testing-guidelines)
+    * [C002: Code should never violate S.O.L.I.D. principles](#c002-code-should-never-violate-solid-principles)
+    * [C003: Provide proper documentation for all public and protected components](#c003-provide-proper-documentation-for-all-public-and-protected-components)
+    * [C004: Use narrow types for properties and methods](#c004-use-narrow-types-for-properties-and-methods)
+    * [C005: Avoid defensive programming](#c005-avoid-defensive-programming)
+    * [C006: Always mark errors that a method can throw](#c006-always-mark-errors-that-a-method-can-throw)
+3. [Testing guidelines](#testing-guidelines)
     * [T001: Follow the arrange, act, assert pattern](#t001-follow-the-arrange-act-assert-pattern)
     * [T002: Test only components that are part of the public api](#t002-test-only-components-that-are-part-of-the-public-api)
     * [T003: Always test against real values, not properties](#t003-always-test-against-real-values-not-properties)
     * [T004: Define and assign jest functions at the top-level, stub them in test cases](#t004-define-and-assign-jest-functions-at-the-top-level-stub-them-in-test-cases)
     * [T005: Mock all depended-on components that interact with external services](#t005-mock-all-depended-on-components-that-interact-with-external-services)
 
+
+## Project guidelines
+
+### P001: Pull requests should only include single features
+
+In order to make code reviews faster, pull requests should always include the minimum amount of code necessary to implement a new single feature. Such features should be atomic, and include just a single functionality. E.g., in the context of a class that is part of the public api, each public method represents a separate atomic feature. At their discretion, developers are free to include multiple minor features in a single pull request in order to reduce the number of PRs. This should always be done by keeping in mind that pull requests should contain few changes and be quick to go over. 
+
+### P002: Design, then implement
+
+When working on a new feature that requires changes to the public api or on a new module from scratch, developers should always start by designing its specification in a technical document before proceeding with implementation. Such specifications should only include components of the public api, and should be totally agnostic about implementation details. Specifications must include a technical reference that describes any new public component, e.g., for methods, the document should include their full documentation including types and descriptions. Along with the technical reference, specification can also include any critical thinking or rationale behind the new change or module. Reviewers and technical leaders will review such documents, discussing and requesting changes. Implementation should start only after the specification reaches common consensus.
+
+#### Example
+
+A template for these technical documents is work in progress. In the meantime, developers can check out wdk-protocol-swap-aori-evm's specification for reference:
+https://docs.google.com/document/d/1jmMPFD1OTHVZ3yYuGsoSsGfXXeBdyRYHENhvE7R_BYA/edit?tab=t.0#heading=h.uvhtjdaqr4re
 
 ## Code guidelines
 
@@ -25,11 +44,11 @@ In order to achieve cleaner, more readable and maintainable code, developers sho
 #### Example
 
 ```javascript
-export default WalletManagerEvm extends WalletManager {
+export default class WalletManagerEvm extends WalletManager {
     async getFeeRates () {
         [...]
 
-        // Bad: Magic numbers are usually a code smell.
+        // Bad: magic numbers are usually a code smell.
         return { 
             normal: feeRate * 110n / 100n,
             [...]
@@ -44,7 +63,34 @@ export default WalletManagerEvm extends WalletManager {
 }
 ```
 
-### C002: Provide proper documentation for all public and protected components
+### C002: Code should never violate S.O.L.I.D. principles
+
+Developers should know about all the five S.O.L.I.D. principles and make sure their code doesn't violate any of them. For a quick reference, developers can use the following links: [Single Responsability Principle](https://www.brainstobytes.com/the-single-responsibility-principle/), [Open-Closed Principle](https://www.brainstobytes.com/the-open-closed-principle/), [Liskov Substitution Principle](https://www.brainstobytes.com/the-liskov-substitution-principle/), [Interface Segregation Principle](https://www.brainstobytes.com/interface-segregation-principle/) and [Dependency Injection Principle](https://www.brainstobytes.com/dependency-injection/).
+
+#### Example
+
+```javascript
+export default class WalletAccountReadOnlyEvm extends WalletAccountReadOnly {
+    /**
+     * Returns the account balance for a specific token.
+     *
+     * @param {string} tokenAddress - The smart contract address of the token.
+     * @returns {Promise<bigint>} The token balance (in base unit).
+     * // Bad: the following post-condition breaks the liskov substitution principle, since the super-type of
+     * the 'WalletAccountReadOnlyEvm' class doesn't define the 'getTokenBalance' to throw when the account
+     * has no funds. For this reason, code that depends on the 'WalletAccountReadOnly' abstract class will
+     * not expect the method to throw and will not handle such case. So, this invalid post-condition could
+     * lead to unsafe behavior when using instances of the 'WalletAccountReadOnlyEvm' class on code that
+     * depends on 'WalletAccountReadOnly'. For more insights, read the reference above.
+     * @throws {Error} If the account has no balance for the given token.
+     */
+    async getTokenBalance (tokenAddress) {
+        [...]
+    }
+}
+```
+
+### C003: Provide proper documentation for all public and protected components
 
 All components that are part of the public api need proper documentation, including meaningful descriptions and types. Documenting private fields and methods is not as essential, but still a significant improvement in readability (especially for complex components).
 
@@ -70,7 +116,7 @@ export default class WalletAccountEvm extends WalletAccountReadOnlyEvm {
 }
 ```
 
-### C003: Use narrow types for properties and methods
+### C004: Use narrow types for properties and methods
 
 When typing properties and methods, developers should always extract and use the narrowest type that best fits them. For fields that can assume any type or whose type is not known, use `unknown` over `any`. For fields that should accept objects with arbitrary data chosen by the user, use `Record<string, unknown>` instead of `Object`.
 
@@ -98,7 +144,7 @@ When typing properties and methods, developers should always extract and use the
  */
 ```
 
-### C004: Avoid defensive programming
+### C005: Avoid defensive programming
 
 Defensive programming requires developers to programmatically check that the pre-conditions of a method hold before proceeding with the call. The only pre-conditions we use in the wallet development kit are the types of the method's arguments, which we can and should always assume to be correct. The .d.ts type definitions along with type checkers already take care of reporting type errors to the client.
 
@@ -126,7 +172,7 @@ export default class WalletAccountReadOnlyTon {
 }
 ```
 
-### C005: Always mark errors that a method can throw with @throws
+### C006: Always mark errors that a method can throw
 
 Developers should mark all errors that a method might throw in its documentation. This must be done by using the @throws tag to properly document the type of the error and the condition under which it will be thrown. This allows users to know which errors they can expect the method to throw, and also under which circumstances.
 
