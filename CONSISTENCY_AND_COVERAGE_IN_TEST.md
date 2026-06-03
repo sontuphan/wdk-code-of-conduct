@@ -24,9 +24,9 @@
 
 ## Abstract
 
-Wallet modules should expose a consistent public api and should also be tested with a consistent strategy. Today, the test suites across `wdk-wallet-*` modules are not fully aligned. Some modules have high coverage but contain tests that cover more than one unit at a time, while other modules have recent code paths that are not covered by committed tests yet.
+Wallet modules expose a shared public api, but their test suites differ in structure, coverage quality and style enforcement. The current state makes it harder to compare modules, identify missing shared behavior and keep test reviews focused on correctness rather than formatting.
 
-The proposal is to standardize wallet-module tests using `wdk-wallet-evm` as the reference suite, add the missing deterministic tests for uncovered code paths, and keep every wallet module above the OKR coverage target of 80%.
+This proposal uses `wdk-wallet-evm` as the reference suite for common wallet behavior, maps the other published `wdk-wallet-*` modules against that reference, and keeps blockchain-specific tests limited to behavior that is unique to each module. It also proposes tracking module coverage against the 80% OKR target and extending the existing StandardJS setup to test files so test style stays consistent across contributors.
 
 ## Status quo
 
