@@ -386,40 +386,42 @@ The following test cases are taken from the `wdk-wallet-evm` unit test suite and
 | 11  | `verify` should return true for a valid signature                                                  |
 | 12  | `verify` should return false for an invalid signature                                              |
 | 13  | `verify` should throw on a malformed signature                                                     |
+| 14  | `dispose` should erase the address and release any held resources                                  |
 
 #### WalletAccount
 
 | #   | Test case                                                                                  |
 | --- | ------------------------------------------------------------------------------------------ |
-| 14  | `constructor` should successfully initialize an account for the given seed phrase and path |
-| 15  | `constructor` should throw if the seed phrase is invalid                                   |
-| 16  | `constructor` should throw if the path is invalid                                          |
-| 17  | `sign` should return the correct signature                                                 |
-| 18  | `signTransaction` should sign a transaction and return a valid hex string                  |
-| 19  | `sendTransaction` should successfully send a transaction                                   |
-| 20  | `sendTransaction` should throw if the account is not connected to a provider               |
-| 21  | `transfer` should successfully transfer tokens                                             |
-| 22  | `transfer` should throw if transfer fee exceeds the transfer max fee configuration         |
-| 23  | `transfer` should throw if the account is not connected to a provider                      |
-| 24  | `toReadOnlyAccount` should return a read-only copy of the account                          |
+| 15  | `constructor` should successfully initialize an account for the given seed phrase and path |
+| 16  | `constructor` should throw if the seed phrase is invalid                                   |
+| 17  | `constructor` should throw if the path is invalid                                          |
+| 18  | `sign` should return the correct signature                                                 |
+| 19  | `signTransaction` should sign a transaction and return a valid hex string                  |
+| 20  | `sendTransaction` should successfully send a transaction                                   |
+| 21  | `sendTransaction` should throw if the account is not connected to a provider               |
+| 22  | `transfer` should successfully transfer tokens                                             |
+| 23  | `transfer` should throw if transfer fee exceeds the transfer max fee configuration         |
+| 24  | `transfer` should throw if the account is not connected to a provider                      |
+| 25  | `toReadOnlyAccount` should return a read-only copy of the account                          |
 
 #### WalletManager
 
 | #   | Test case                                                               |
 | --- | ----------------------------------------------------------------------- |
-| 25  | `getAccount` should return the account at index 0 by default            |
-| 26  | `getAccount` should return the account at the given index               |
-| 27  | `getAccount` should throw if the index is a negative number             |
-| 28  | `getAccountByPath` should return the account with the given path        |
-| 29  | `getAccountByPath` should throw if the path is invalid                  |
-| 30  | `getFeeRates` should return the correct fee rates                       |
-| 31  | `getFeeRates` should throw if the wallet is not connected to a provider |
+| 26  | `getAccount` should return the account at index 0 by default            |
+| 27  | `getAccount` should return the account at the given index               |
+| 28  | `getAccount` should throw if the index is a negative number             |
+| 29  | `getAccountByPath` should return the account with the given path        |
+| 30  | `getAccountByPath` should throw if the path is invalid                  |
+| 31  | `getFeeRates` should return the correct fee rates                       |
+| 32  | `getFeeRates` should throw if the wallet is not connected to a provider |
+| 33  | `dispose` should erase the private keys of all derived accounts         |
 
 Blockchain-specific unit test cases should be added after these common cases in a clearly marked section within the same test file:
 
 ```js
 describe("WalletAccount<Chain>", () => {
-  // Common cases (14–24) ...
+  // Common cases (15–25) ...
 
   describe("blockchain-specific", () => {
     // Chain-specific cases only
