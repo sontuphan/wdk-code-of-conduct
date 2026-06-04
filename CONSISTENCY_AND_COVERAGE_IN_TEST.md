@@ -21,6 +21,10 @@
   - [Keep coverage above the OKR threshold](#keep-coverage-above-the-okr-threshold)
   - [Add linting for test files](#add-linting-for-test-files)
 - [Execution plan](#execution-plan)
+- [Appendix](#appendix)
+  - [A. Using StandardJS with Jest](#a-using-standardjs-with-jest)
+  - [B. Unit test checklist](#b-unit-test-checklist)
+  - [C. Integration test checklist](#c-integration-test-checklist)
 
 ## Abstract
 
@@ -340,3 +344,86 @@ The StandardJS setup should account for Jest globals and the ESM module-mocking 
 3. Add missing common unit tests, align existing integration suites with the shared EVM contract and add targeted tests for accepted coverage gaps.
 4. Rewrite low-priority tests with poor unit boundaries and add linting for test files to align style across modules.
 5. Add coverage checks to the module review process and track every module against the 80% OKR target.
+
+## Appendix
+
+### A. Using StandardJS with Jest
+
+StandardJS does not know about Jest globals (`describe`, `test`, `it`, `expect`, `beforeEach`, `afterEach`, `jest`) by default and reports them as undefined-variable errors in test files. Declare the Jest environment in the module `package.json`:
+
+```json
+{
+  "standard": {
+    "env": ["jest"]
+  }
+}
+```
+
+That is the only change required. No additional plugins or configuration are needed.
+
+---
+
+### B. Unit test checklist
+
+The following test cases are derived from the `wdk-wallet-evm` test suite and represent the minimum common unit tests that every `wdk-wallet-*` module should implement. Cases that are not applicable to a target blockchain should be explicitly marked as skipped in the migration matrix with a short reason.
+
+> Source reference: `wdk-wallet-evm/tests/`
+
+#### WalletAccountReadOnly
+
+| #   | Test case                                                                      |
+| --- | ------------------------------------------------------------------------------ |
+| 1   | `getAddress` should return the address passed at construction                  |
+| 2   | `getBalance` should return the native token balance                            |
+| 3   | `verify` should return true for a valid signature                              |
+| 4   | `verify` should return false for an invalid signature                          |
+| 5   | `verify` should return false when the signature belongs to a different message |
+
+#### WalletAccount
+
+| #   | Test case                                                                                   |
+| --- | ------------------------------------------------------------------------------------------- |
+| 6   | `getAddress` should return the wallet address for the given seed phrase and derivation path |
+| 7   | `getAddress` should return the same address across multiple calls                           |
+| 8   | `sign` should return a non-empty signature string                                           |
+| 9   | `sign` should return the same signature for the same message                                |
+| 10  | `sign` should return different signatures for different messages                            |
+| 11  | `getBalance` should return the native token balance                                         |
+
+#### WalletManager
+
+| #   | Test case                                                             |
+| --- | --------------------------------------------------------------------- |
+| 12  | `createWallet` should return a wallet with a valid seed phrase        |
+| 13  | `createWallet` should return a different seed phrase on each call     |
+| 14  | `restoreWallet` should return an account for a known seed phrase      |
+| 15  | `restoreWallet` should return a read-only account for a known address |
+| 16  | `restoreWallet` should throw for an invalid seed phrase               |
+
+Blockchain-specific unit test cases should be added after these common cases in a clearly marked section within the same test file:
+
+```js
+describe("WalletAccountEvm", () => {
+  // Common cases (1–11) ...
+
+  describe("blockchain-specific", () => {
+    // EVM-specific cases only
+  });
+});
+```
+
+---
+
+### C. Integration test checklist
+
+The following integration test cases are derived from `wdk-wallet-evm/tests/integration/module.test.js` and represent the minimum common integration tests that every `wdk-wallet-*` module should implement.
+
+> Source reference: `wdk-wallet-evm/tests/integration/module.test.js`
+
+| #   | Test case                                                                                  |
+| --- | ------------------------------------------------------------------------------------------ |
+| 1   | The module should register successfully with the WDK registry                              |
+| 2   | A wallet created through the module should be able to sign and verify a message end-to-end |
+| 3   | A restored read-only wallet should return the correct address                              |
+
+**Blockchain-specific integration test cases should be added in a clearly marked section within the same integration test file.**
