@@ -20,6 +20,7 @@
   - [Add blockchain-specific tests only when required by the module](#add-blockchain-specific-tests-only-when-required-by-the-module)
   - [Keep coverage above the OKR threshold](#keep-coverage-above-the-okr-threshold)
   - [Add linting for test files](#add-linting-for-test-files)
+  - [Standardize package scripts across all modules](#standardize-package-scripts-across-all-modules)
 - [Execution plan](#execution-plan)
 - [Appendix](#appendix)
   - [A. Using StandardJS with Jest](#a-using-standardjs-with-jest)
@@ -337,13 +338,29 @@ Test files should be covered by the existing StandardJS setup used for source co
 
 The StandardJS setup should account for Jest globals and the ESM module-mocking patterns already used in the test suites. If enabling linting on all existing tests creates too much noise in the first pass, the work can be split into an initial formatting-only cleanup followed by stricter lint rules.
 
+### Standardize package scripts across all modules
+
+All `wdk-wallet-*` modules should use the same package script names. `wdk-wallet-btc` already uses an explicit unit split that makes the distinction between unit and integration runs unambiguous. That shape should become the standard across all modules:
+
+| Script                    | Purpose                                        |
+|---------------------------|------------------------------------------------|
+| `test:unit`               | Run unit tests                                 |
+| `test:unit:coverage`      | Run unit tests with coverage report            |
+| `test:integration`        | Run integration tests                          |
+| `test:integration:coverage` | Run integration tests with coverage report   |
+
+Modules that currently use `test` and `test:coverage` as aliases for unit tests should rename those scripts to `test:unit` and `test:unit:coverage`. The bare `test` script can remain as a convenience alias that runs `test:unit`, so existing CI steps that call `npm test` continue to work without changes.
+
+Modules with a testnet-specific script such as `test:testnet` should keep it alongside the standard scripts.
+
 ## Execution plan
 
 1. Audit the current test suites and coverage reports across the published `wdk-wallet-*` modules.
 2. Create a matrix that maps the EVM reference test cases to each module, marking cases as implemented, missing, not applicable or blockchain-specific.
-3. Add missing common unit tests, align existing integration suites with the shared EVM contract and add targeted tests for accepted coverage gaps.
-4. Rewrite low-priority tests with poor unit boundaries and add linting for test files to align style across modules.
-5. Add coverage checks to the module review process and track every module against the 80% OKR target.
+3. Rename package scripts to the standard `test:unit`, `test:unit:coverage`, `test:integration`, `test:integration:coverage` shape across all modules.
+4. Add missing common unit tests, align existing integration suites with the shared EVM contract and add targeted tests for accepted coverage gaps.
+5. Rewrite low-priority tests with poor unit boundaries and add linting for test files to align style across modules.
+6. Add coverage checks to the module review process and track every module against the 80% OKR target.
 
 ## Appendix
 
