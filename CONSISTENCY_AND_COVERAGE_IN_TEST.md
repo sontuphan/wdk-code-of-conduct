@@ -342,12 +342,12 @@ The StandardJS setup should account for Jest globals and the ESM module-mocking 
 
 All `wdk-wallet-*` modules should use the same package script names. `wdk-wallet-btc` already uses an explicit unit split that makes the distinction between unit and integration runs unambiguous. That shape should become the standard across all modules:
 
-| Script                    | Purpose                                        |
-|---------------------------|------------------------------------------------|
-| `test:unit`               | Run unit tests                                 |
-| `test:unit:coverage`      | Run unit tests with coverage report            |
-| `test:integration`        | Run integration tests                          |
-| `test:integration:coverage` | Run integration tests with coverage report   |
+| Script                      | Purpose                                    |
+| --------------------------- | ------------------------------------------ |
+| `test:unit`                 | Run unit tests                             |
+| `test:unit:coverage`        | Run unit tests with coverage report        |
+| `test:integration`          | Run integration tests                      |
+| `test:integration:coverage` | Run integration tests with coverage report |
 
 Modules that currently use `test` and `test:coverage` as aliases for unit tests should rename those scripts to `test:unit` and `test:unit:coverage`. The bare `test` script can remain as a convenience alias that runs `test:unit`, so existing CI steps that call `npm test` continue to work without changes.
 
