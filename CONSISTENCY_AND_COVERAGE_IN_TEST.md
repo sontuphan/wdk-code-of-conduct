@@ -35,13 +35,15 @@ This proposal uses `wdk-wallet-evm` as the reference suite for common wallet beh
 
 ## Status quo
 
-There are three different problems to solve.
+There are four different problems to solve.
 
 The first problem is test consistency. All `wdk-wallet-*` modules expose the same kind of wallet api, but their test suites are not structured in the same way. Some modules follow the `wdk-wallet-evm` shape with account, read-only account, manager and integration tests. Other modules have only a subset of those tests, or, as in `wdk-wallet-spark`, keep integration tests at the top level of `tests` as `*.integration.test.js` files.
 
 The second problem is coverage quality. A module can have many tests or high line coverage and still miss the behavior that matters. This is especially visible in failover and signature verification tests: some suites test that a failover provider can be constructed, but not that requests actually move from the failing provider to the next provider; some tests use `sign` to prepare data for `verify`, which means the test covers two units instead of one.
 
 The third problem is test style drift. Test files are currently ignored by the StandardJS lint configuration in the wallet modules, so formatting and style decisions are left to each contributor. Over time, this creates divergent test styles across modules and makes reviews spend effort on issues that should be enforced automatically.
+
+The fourth problem is that the default `test` command conflates the unit and integration suites. In most modules `test` runs both suites in one go, even though integration tests require the test services to be up and running, the 80% coverage target is meant to be measured on unit tests alone but `test:coverage` currently involves both unit and integration tests, and CI is best structured with the two suites as separate stages so a failure in one does not take down the other.
 
 ### Repository audit
 
@@ -350,6 +352,8 @@ All `wdk-wallet-*` modules should use the same package script names. `wdk-wallet
 | `test:integration:coverage` | Run integration tests with coverage report |
 
 Modules that currently use `test` and `test:coverage` as aliases for unit tests should rename those scripts to `test:unit` and `test:unit:coverage`. The bare `test` script can remain as a convenience alias that runs `test:unit`, so existing CI steps that call `npm test` continue to work without changes.
+
+This split also resolves the conflation problem described in the status quo. With `test:unit` and `test:integration` as separate entry points, the unit suite no longer fails just because the integration test services are down, the 80% coverage gate is measured unambiguously against the unit suite, and CI can run the two suites as separate stages so a failure in one does not take down the other. The bare `test` alias intentionally points at `test:unit` rather than running both suites, so the default local run stays deterministic and does not require external services.
 
 Modules with a testnet-specific script such as `test:testnet` should keep it alongside the standard scripts.
 
